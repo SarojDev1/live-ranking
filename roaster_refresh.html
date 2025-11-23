@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>LIVE RANKING - PUBG</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height: 100%; background: #ffffff; font-family: "Oswald", Arial, sans-serif; }
+
+    /* Purple theme */
+    .board {
+      width: 420px;
+      margin: 20px auto;
+      background: #5A3FFB; /* PURPLE */
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+
+    .board .banner {
+      height: 96px;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:#3d2cca;
+    }
+
+    .board .title {
+      font-size: 36px;
+      letter-spacing: 3px;
+      color: #ffffff;
+      font-weight: 700;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Header */
+    .hdr {
+      display: grid;
+      grid-template-columns: 56px 1fr 60px 86px 56px;
+      align-items: center;
+      background: #1d173a;
+      color: #fff;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .rows { width: 100%; }
+    .row {
+      display: grid;
+      grid-template-columns: 56px 1fr 60px 86px 56px;
+      align-items: center;
+      padding: 14px 12px;
+      column-gap: 6px;
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .row.alt { background: rgba(0,0,0,0.15); }
+
+    .rank {
+      font-size: 20px;
+      color: #fff;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .team {
+      text-align: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .pts {
+      font-size: 22px;
+      text-align: center;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .alive {
+      display:flex;
+      gap:4px;
+      justify-content:center;
+      color:#fff;
+      font-weight:bold;
+    }
+
+    .elims {
+      text-align:center;
+      font-size:20px;
+      color:#fff;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <div class="board" id="board">
+    <div class="banner">
+      <div class="title">LIVE RANKING</div>
+    </div>
+
+    <div class="hdr">
+      <div style="text-align:center">RANK</div>
+      <div style="text-align:center">TEAM</div>
+      <div style="text-align:center">PTS</div>
+      <div style="text-align:center">ALIVE</div>
+      <div style="text-align:center">ELIMS</div>
+    </div>
+
+    <div class="rows" id="rows"></div>
+  </div>
+
+<script>
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRilus17nDnHko-Sv-ysgA1O_XFmySDsF2lYYptGkjkk2W7Juqp8CZLtiypSdWLUh19c1fF1oxhm1V_/pub?gid=0&single=true&output=csv";
+
+function renderRow(idx, info) {
+  const row = document.createElement("div");
+  row.className = "row" + (idx % 2 === 1 ? " alt" : "");
+
+  row.innerHTML = `
+    <div class="rank">#${idx + 1}</div>
+    <div class="team">${info.team}</div>
+    <div class="pts">${info.points}</div>
+    <div class="alive">${"●".repeat(info.alive)}</div>
+    <div class="elims">${info.elims}</div>
+  `;
+  return row;
+}
+
+function renderLeaderboard(list) {
+  const container = document.getElementById("rows");
+  container.innerHTML = "";
+  list.forEach((t, i) => container.appendChild(renderRow(i, t)));
+}
+
+async function updateFromSheet() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const rows = text.split("\n").slice(1).filter(r => r.trim() !== "").map(r => r.split(","));
+
+    const formatted = rows.map(r => ({
+      team: r[1].trim(),
+      points: r[2].trim(),
+      alive: Number(r[3].trim()) || 0,
+      elims: Number(r[4].trim()) || 0
+    }));
+
+    renderLeaderboard(formatted);
+  } catch (err) {
+    console.error("Failed to update leaderboard:", err);
+  }
+}
+
+// Auto-update every 1 second
+setInterval(updateFromSheet, 1000);
+updateFromSheet();
+</script>
+</body>
+</html>
