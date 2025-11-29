@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>FF Table Luxury Thin Borders</title>
+    <style>
+      @font-face {
+        font-family: "LongShot";
+        src: url("longshot.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "NotoSerif";
+        src: url("notoserif.ttf") format("truetype");
+      }
+
+      body {
+        margin: 0;
+        background: #0d0d11;
+        font-family: "NotoSerif", "Poppins", sans-serif;
+        color: white;
+        overflow: hidden;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1500px;
+        margin: 40px auto;
+      }
+
+      .header {
+        display: flex;
+        font-size: 30px;
+        font-weight: 100;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+      }
+
+      .header div {
+        color: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 10px;
+        background: #dfab1a;
+        font-weight: 100;
+        border: 1px solid white;
+        border-radius: 14px;
+      }
+
+      .row {
+        display: flex;
+        margin-bottom: 6px;
+        font-size: 30px;
+        font-weight: 100;
+        letter-spacing: 1px;
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+
+      .cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 8px;
+        background: rgba(255, 255, 255, 0.05);
+        margin-right: 1px;
+        border-radius: 6px;
+        box-shadow: inset 0 0.2px 0 #ffd35c,
+          inset 0 -0.2px 0 #ffd35c,
+          inset 0.2px 0 0 #ffd35c,
+          inset -0.2px 0 0 #ffd35c;
+      }
+
+      .team-cell {
+        width: 500px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: start;
+      }
+
+      .team-logo {
+        display: flex;
+        align-items: center;
+        gap: 70px;
+      }
+
+      .logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 6px;
+        object-fit: cover;
+        padding-left: 30px;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .point {
+        background: linear-gradient(135deg, #1c1c1c, #2e2b2b);
+        color: #ffd35c;
+      }
+
+      .animate {
+        animation: slideIn 0.6s forwards;
+      }
+
+      @keyframes slideIn {
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div style="width: 100px">RANK</div>
+        <div style="width: 500px">TEAM NAME</div>
+        <div style="width: 200px">BOOYAH</div>
+        <div style="width: 200px; text-align: center">KILLS</div>
+        <div style="width: 200px; text-align: center">PLACEMENT</div>
+        <div style="width: 200px; text-align: center">POINTS</div>
+      </div>
+
+      <div id="table"></div>
+    </div>
+
+    <script>
+      const SHEET_URL =
+        "https://docs.google.com/spreadsheets/d/1S1PkVH9RY2UBnEgBaxOvd-D4vI5S1anYR0IgGlwGCKc/gviz/tq?gid=0&tqx=out:json";
+
+      let allRows = [];
+      const rowsPerPage = 6;
+      let currentPage = 0;
+
+      async function fetchSheet() {
+        const res = await fetch(SHEET_URL);
+        let text = await res.text();
+        text = text.substring(47, text.length - 2);
+        const json = JSON.parse(text);
+        const rows = json.table.rows;
+
+        // -----------------------------------------
+        // FIND MATCH NUMBER from COLUMN L (index 11)
+        // -----------------------------------------
+        let matchNumber = 1;
+
+        for (let i = 0; i < 10; i++) {
+          const cell = rows[i]?.c[11]?.v;
+          if (cell && !isNaN(cell)) {
+            matchNumber = Number(cell);
+            break;
+          }
+        }
+
+        const m = matchNumber;
+
+        // -----------------------------------------
+        // READ TABLE CONTENT
+        // -----------------------------------------
+        allRows = [];
+
+        for (let i = 0; i <= 12; i++) {
+          const team = rows[i]?.c[1]?.v ?? "";
+          const logo = rows[i]?.c[2]?.v ?? "";
+
+          // POINTS column locations for matches
+          const points =
+            m === 1 ? Number(rows[i]?.c[3]?.v ?? 0) :
+            m === 2 ? Number(rows[i]?.c[15]?.v ?? 0) :
+            m === 3 ? Number(rows[i]?.c[27]?.v ?? 0) :
+            m === 4 ? Number(rows[i]?.c[38]?.v ?? 0) :
+            m === 5 ? Number(rows[i]?.c[49]?.v ?? 0) :
+            m === 6 ? Number(rows[i]?.c[60]?.v ?? 0) : 0;
+
+          // BOOYAH stays same
+          const booyah = Number(rows[i]?.c[5]?.v ?? 0);
+
+          // PLACEMENT column locations for matches
+          const placement =
+            m === 1 ? Number(rows[i]?.c[6]?.v ?? 0) :
+            m === 2 ? Number(rows[i]?.c[18]?.v ?? 0) :
+            m === 3 ? Number(rows[i]?.c[29]?.v ?? 0) :
+            m === 4 ? Number(rows[i]?.c[40]?.v ?? 0) :
+            m === 5 ? Number(rows[i]?.c[51]?.v ?? 0) :
+            m === 6 ? Number(rows[i]?.c[62]?.v ?? 0) : 0;
+
+          const kills = points - placement;
+
+          allRows.push({ team, logo, points, booyah, placement, kills });
+        }
+
+        // SORT
+        allRows.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.kills !== a.kills) return b.kills - a.kills;
+          if (a.placement !== b.placement) return a.placement - b.placement;
+          return b.booyah - a.booyah;
+        });
+
+        allRows.forEach((r, i) => (r.rank = i + 1));
+
+        renderPage(currentPage);
+
+        setTimeout(() => {
+          currentPage = 1;
+          renderPage(currentPage);
+        }, 25000);
+      }
+
+      function renderPage(pageIndex) {
+        const table = document.getElementById("table");
+        const start = pageIndex * rowsPerPage;
+        const end = start + rowsPerPage;
+        const rowsToShow = allRows.slice(start, end);
+
+        table.innerHTML = "";
+
+        rowsToShow.forEach((r, i) => {
+          const row = document.createElement("div");
+          row.className = "row";
+          row.innerHTML = `
+            <div class="cell" style="width:100px;">${r.rank}</div>
+            <div class="cell team-cell">
+              <div class="team-logo">
+                <div><img src="../logos/${r.logo}" class="logo" /></div>
+                <span>${r.team}</span>
+              </div>
+            </div>
+            <div class="cell stat" style="width:200px;">${r.booyah}</div>
+            <div class="cell stat" style="width:200px;">${r.kills}</div>
+            <div class="cell stat" style="width:200px;">${r.placement}</div>
+            <div class="cell stat point" style="width:200px;">${r.points}</div>
+          `;
+
+          table.appendChild(row);
+
+          setTimeout(() => row.classList.add("animate"), i * 150);
+        });
+      }
+
+      fetchSheet();
+    </script>
+  </body>
+</html>

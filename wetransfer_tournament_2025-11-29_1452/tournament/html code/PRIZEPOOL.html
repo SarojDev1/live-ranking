@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Side-by-Side Tables - Animated</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d11;
+      font-family: "EAGLORE", sans-serif;
+      color: white;
+      overflow-x: auto;
+    }
+
+    .tables-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      padding: 40px 20px;
+      flex-wrap: wrap;
+    }
+
+    .section {
+      flex: 1 1 450px;
+      max-width: 450px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 100;
+      color: #ffd35c;
+      margin-bottom: 15px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .header {
+      display: flex;
+      font-size: 24px;
+      font-weight: 100;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .header div {
+      color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 6px;
+      background: #b58d1d;
+      font-weight: 100;
+      box-shadow: inset 0 0.2px 0 #ffd35c, inset 0 -0.2px 0 #ffd35c,
+                  inset 0.2px 0 0 #ffd35c, inset -0.2px 0 0 #ffd35c;
+      border: 1px solid white;
+      border-radius: 10px;
+    }
+
+    .row {
+      display: flex;
+      margin-bottom: 6px;
+      font-size: 24px;
+      font-weight: 100;
+      letter-spacing: 1px;
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+
+    .cell {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 6px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-right: 1px;
+      border-radius: 6px;
+      box-shadow: inset 0 0.2px 0 #ffd35c, inset 0 -0.2px 0 #ffd35c,
+                  inset 0.2px 0 0 #ffd35c, inset -0.2px 0 0 #ffd35c;
+    }
+
+    .amount {
+      color: #ffd35c;
+      text-align: center;
+    }
+
+    .animate {
+      animation: slideIn 0.6s forwards;
+    }
+
+    @keyframes slideIn {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Diamond style: alternating row shading */
+    .row:nth-child(odd) .cell {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .row:nth-child(even) .cell {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    @media(max-width: 1400px) {
+      .tables-container {
+        flex-wrap: wrap;
+      }
+      .section {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="tables-container">
+  <!-- Prizepool -->
+  <div class="section">
+    <div class="section-title">PRIZEPOOL</div>
+    <div class="header">
+      <div style="width:60px;">RANK</div>
+      <div style="width:160px;">POSITION</div>
+      <div style="width:160px;">PRIZE</div>
+    </div>
+    <div id="prizepool-table"></div>
+  </div>
+
+  <!-- Diamond Distribution -->
+  <div class="section">
+    <div class="section-title">DIAMOND DISTRIBUTION</div>
+    <div class="header">
+      <div style="width:60px;">RANK</div>
+      <div style="width:160px;">PLAYER</div>
+      <div style="width:160px;">DIAMONDS</div>
+    </div>
+    <div id="dias-table"></div>
+  </div>
+
+  <!-- MVP -->
+  <div class="section">
+    <div class="section-title">MVP</div>
+    <div class="header">
+      <div style="width:60px;">RANK</div>
+      <div style="width:160px;">PLAYER</div>
+      <div style="width:160px;">POINTS</div>
+    </div>
+    <div id="mvp-table"></div>
+  </div>
+</div>
+
+<script>
+  const prizepool = [
+    { rank: 1, position: "Champion", prize: "$1200" },
+    { rank: 2, position: "Runner-Up", prize: "$900" },
+    { rank: 3, position: "3rd Place", prize: "$700" },
+    { rank: 4, position: "4th Place", prize: "$500" },
+    { rank: 5, position: "5th Place", prize: "$400" },
+    { rank: 6, position: "6th Place", prize: "$300" },
+    { rank: 7, position: "7th Place", prize: "$250" },
+    { rank: 8, position: "8th Place", prize: "$200" },
+    { rank: 9, position: "9th Place", prize: "$150" },
+    { rank: 10, position: "10th Place", prize: "$120" },
+    { rank: 11, position: "11th Place", prize: "$100" },
+    { rank: 12, position: "12th Place", prize: "$80" }
+  ];
+
+  const dias = [
+    { rank: 1, position: "Player A", diamonds: 50 },
+    { rank: 2, position: "Player B", diamonds: 45 },
+    { rank: 3, position: "Player C", diamonds: 40 }
+  ];
+
+  const mvp = [
+    { rank: 1, player: "Player A", points: 120 },
+    { rank: 2, player: "Player B", points: 110 },
+    { rank: 3, player: "Player C", points: 100 }
+  ];
+
+  function renderTable(containerId, data, col2, col3) {
+    const table = document.getElementById(containerId);
+    table.innerHTML = "";
+    data.forEach((r, i) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div class="cell" style="width:60px;">${r.rank}</div>
+        <div class="cell" style="width:160px;">${r[col2]}</div>
+        <div class="cell amount" style="width:160px;">${r[col3]}</div>
+      `;
+      table.appendChild(row);
+      setTimeout(() => row.classList.add("animate"), i * 150);
+    });
+  }
+
+  window.onload = () => {
+    renderTable("prizepool-table", prizepool, "position", "prize");
+    renderTable("dias-table", dias, "position", "diamonds");
+    renderTable("mvp-table", mvp, "player", "points"); // same table style as prizepool
+  };
+</script>
+
+</body>
+</html>

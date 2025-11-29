@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        margin: 0;
+        background: #0d0d11;
+        font-family: "EAGLORE", sans-serif;
+        color: white;
+        overflow: hidden;
+      }
+
+      /* Background Canvas */
+      #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .container {
+        width: 2560px;
+        height: 1440px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-size: 40px;
+        margin-bottom: 30px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .compare-table {
+        display: flex;
+        gap: 300px;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .team-card {
+        width: 500px;
+        padding: 80px;
+        border-radius: 24px;
+        font-size: 80px;
+        box-shadow: inset 0 0.5px 0 #ffd35c, inset 0 -0.5px 0 #ffd35c,
+          inset 0.5px 0 0 #ffd35c, inset -0.5px 0 0 #ffd35c;
+      }
+      .team-logo {
+        width: 350px;
+        height: 350px;
+        border-radius: 50%; /* ROUND */
+        margin: 0 auto 18px;
+        overflow: hidden;
+        background: #333;
+        opacity: 0;
+        transform: scale(0.5);
+        animation: fadeInSegment 0.5s forwards 0.3s;
+
+        /* GOLDEN BORDER */
+        border: 2px solid #ffd35c;
+        box-shadow: 0 0 20px rgba(255, 211, 92, 0.4);
+      }
+
+      .team-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .team-name {
+        font-size: 70px;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        opacity: 0;
+        transform: translateY(-20px);
+        animation: fadeInSegment 0.5s forwards 0.5s;
+      }
+
+      .stat {
+        width: 500;
+        font-size: 50px;
+        margin: 10px 0;
+        padding: 10px;
+        background: linear-gradient(135deg, #1c1c1c, #2e2b2b);
+        border-radius: 8px;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        opacity: 0;
+        transform: translateX(-50px);
+        animation: fadeInSegment 0.5s forwards;
+      }
+
+      .stat:nth-child(3) {
+        animation-delay: 0.7s;
+      }
+      .stat:nth-child(4) {
+        animation-delay: 0.9s;
+      }
+      .stat:nth-child(5) {
+        animation-delay: 1.1s;
+      }
+
+      .highlight {
+        color: #ffd35c;
+        font-weight: 100;
+      }
+
+      @keyframes fadeInSegment {
+        to {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+      <div class="compare-table" id="compare-table">
+        <!-- Top 2 teams will be rendered here -->
+      </div>
+    </div>
+
+    <script>
+      // -------------------------
+      // Background Math Symbols
+      // -------------------------
+      const canvas = document.getElementById("bg-canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        canvas.width = 2560; // full 2K width
+        canvas.height = 1440; // full 2K height
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      const symbols = ["0", "1", "+", "×", "-", "="];
+      const floating = [];
+
+      // Create some floating symbols
+      for (let i = 0; i < 100; i++) {
+        floating.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          char: symbols[Math.floor(Math.random() * symbols.length)],
+          size: 20 + Math.random() * 40,
+          speed: 0.2 + Math.random() * 0.5,
+          alpha: 0.1 + Math.random() * 0.5,
+        });
+      }
+
+      function drawBackground() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        floating.forEach((f) => {
+          ctx.font = `${f.size}px monospace`;
+          ctx.fillStyle = `rgba(255, 211, 92, ${f.alpha})`;
+          ctx.fillText(f.char, f.x, f.y);
+
+          // Move upward slowly
+          f.y -= f.speed;
+          if (f.y < -50) {
+            f.y = canvas.height + 50;
+            f.x = Math.random() * canvas.width;
+          }
+        });
+
+        requestAnimationFrame(drawBackground);
+      }
+
+      drawBackground();
+
+      // -------------------------
+      // Google Sheet Data Fetch
+      // -------------------------
+      const SHEET_URL =
+        "https://docs.google.com/spreadsheets/d/1S1PkVH9RY2UBnEgBaxOvd-D4vI5S1anYR0IgGlwGCKc/gviz/tq?gid=1812532198&tqx=out:json";
+
+      async function fetchSheet() {
+        const res = await fetch(SHEET_URL);
+        let text = await res.text();
+        text = text.substring(47, text.length - 2);
+        const json = JSON.parse(text);
+        const rows = json.table.rows;
+
+        let teams = [];
+
+        rows.forEach((r) => {
+          const rank = r.c[7]?.v ?? "";
+          const team = r.c[8]?.v ?? "";
+          const kills = r.c[9]?.v ?? 0;
+          const points = r.c[10]?.v ?? 0;
+          const placement = r.c[11]?.v ?? 0;
+          const logo = r.c[12]?.v ?? "";
+          const booyah = r.c[13]?.v ?? 0;
+          if (rank && team) {
+            teams.push({ rank, team, kills, points, logo, booyah, placement });
+          }
+        });
+
+        // Sort by points descending
+        teams.sort((a, b) => b.points - a.points);
+
+        // Take top 2 teams
+        const top2 = teams.slice(0, 2);
+        renderCompare(top2);
+      }
+
+      function renderCompare(teams) {
+        const container = document.getElementById("compare-table");
+        container.innerHTML = "";
+
+        teams.forEach((team) => {
+          const winRate = team.points / team?.rank;
+          const overallDamage = team.kills * 300;
+
+          const card = document.createElement("div");
+          card.className = "team-card";
+          card.innerHTML = `
+      <div class="team-logo"><img src="${team.logo}" /></div>
+      <div class="team-name">${team.team}</div>
+      <div class="stat">KILLS <span class="highlight">${team.kills}</span></div>
+      <div class="stat">WIN RATE <span class="highlight">${winRate.toFixed(
+        2
+      )}%</span></div>
+      <div class="stat">DAMAGE <span class="highlight">${overallDamage.toFixed(
+        2
+      )}</span></div>
+    `;
+          container.appendChild(card);
+        });
+      }
+
+      fetchSheet();
+    </script>
+  </body>
+</html>

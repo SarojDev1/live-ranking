@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OBS Team Overlay</title>
+    <style>
+      body {
+        margin: 0;
+        background: transparent;
+        font-family: "EAGLORE", sans-serif;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        align-items: flex-start;
+        width: 100%;
+        max-width: 2560px; /* for 2K */
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .card {
+        flex: 1 1 calc(16.66% - 20px); /* 6 cards per row */
+        background:  #353839;;
+        border: 1px solid rgb(154, 154, 30);
+        border-radius: 6px;
+        padding: 10px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.5s, opacity 0.5s;
+        box-sizing: border-box;
+        height: 48vh;
+        position: relative;
+      }
+
+      .card img.logo {
+        margin-top: 70px;
+        width: 250px;
+        height: 250px;
+        object-fit: contain;
+        border-radius: 50%;
+        border: 1px solid white;
+        z-index: 2;
+      }
+
+      .back-img {
+        object-fit: cover;
+        z-index: 1;
+        width: 105%;
+        position: relative;
+        top: -520px;
+      }
+
+      .team-name {
+        font-size: 50px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+        z-index: 2;
+        position: relative;
+        top: 380px;
+        color: black;
+      }
+
+      .player-list {
+        font-size: 50px;
+        text-align: center;
+        position: relative;
+        top: -30px;
+      }
+
+      .hidden {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      .visible {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      @media (max-width: 1920px) {
+        .card {
+          flex: 1 1 calc(16.66% - 15px);
+        }
+      }
+      @media (max-width: 1400px) {
+        .card {
+          flex: 1 1 calc(20% - 15px);
+        }
+      }
+      @media (max-width: 1000px) {
+        .card {
+          flex: 1 1 calc(33.33% - 15px);
+        }
+      }
+      @media (max-width: 600px) {
+        .card {
+          flex: 1 1 calc(50% - 10px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="teamContainer"></div>
+    <script>
+      const SHEET_URL =
+        "https://docs.google.com/spreadsheets/d/1S1PkVH9RY2UBnEgBaxOvd-D4vI5S1anYR0IgGlwGCKc/gviz/tq?gid=1669096445&tqx=out:json";
+
+      let teamsData = [];
+      let currentIndex = 0;
+      let intervalId = null;
+
+      function animateCardElements(card) {
+        const logo = card.querySelector(".logo");
+        const teamName = card.querySelector(".team-name");
+        const playerList = card.querySelector(".player-list");
+
+        logo.style.opacity = 0;
+        teamName.style.opacity = 0;
+        playerList.style.opacity = 0;
+
+        logo.style.transform = "translateY(-50px) scale(0.5)";
+        teamName.style.transform = "translateY(-50px) scale(0.5)";
+        playerList.style.transform = "translateY(-50px) scale(0.5)";
+
+        // Animate logo
+        setTimeout(() => {
+          logo.style.transition = "transform 0.7s ease, opacity 0.7s ease";
+          logo.style.opacity = 1;
+          logo.style.transform = "translateY(0) scale(1)";
+        }, 200);
+
+        // Animate team name
+        setTimeout(() => {
+          teamName.style.transition = "transform 0.7s ease, opacity 0.7s ease";
+          teamName.style.opacity = 1;
+          teamName.style.transform = "translateY(0) scale(1)";
+        }, 400);
+
+        // Animate player list
+        setTimeout(() => {
+          playerList.style.transition =
+            "transform 0.7s ease, opacity 0.7s ease";
+          playerList.style.opacity = 1;
+          playerList.style.transform = "translateY(0) scale(1)";
+        }, 600);
+      }
+
+      function renderTeams() {
+        const container = document.getElementById("teamContainer");
+        container.innerHTML = "";
+        const batch = teamsData.slice(currentIndex, currentIndex + 6);
+
+        batch.forEach((team, index) => {
+          const card = document.createElement("div");
+          card.className = "card hidden";
+          card.innerHTML = `
+      <img class="logo" src="../logos/${team.logo}" alt="${team.name}">
+      <div class="team-name">${team.name}</div>
+      <div class="player-list">${team.players.join("<br>")}</div>
+      <img class="back-img" src="../booyahTeam/background.png" alt="Background">
+    `;
+          container.appendChild(card);
+
+          // Make card visible
+          setTimeout(() => {
+            card.classList.replace("hidden", "visible");
+            animateCardElements(card); // Animate inner elements
+          }, index * 200);
+        });
+      }
+
+      function nextBatch() {
+        currentIndex += 6;
+
+        if (currentIndex >= teamsData.length) {
+          clearInterval(intervalId);
+          return;
+        }
+
+        renderTeams();
+      }
+
+      async function fetchSheet() {
+        try {
+          const res = await fetch(SHEET_URL);
+          let text = await res.text();
+          text = text.substring(47, text.length - 2);
+          const data = JSON.parse(text);
+
+          const rows = data.table.rows;
+          for (let col = 8; col <= 19; col++) {
+            const team = {
+              name: rows[3].c[col]?.v || "Unknown",
+              players: [
+                rows[4].c[col]?.v || "",
+                rows[5].c[col]?.v || "",
+                rows[6].c[col]?.v || "",
+                rows[7].c[col]?.v || "",
+              ].filter(Boolean),
+              logo: rows[8].c[col]?.v || "",
+            };
+            teamsData.push(team);
+          }
+
+          renderTeams();
+
+          intervalId = setInterval(nextBatch, 10000);
+        } catch (err) {
+          console.error("Error fetching sheet:", err);
+        }
+      }
+
+      fetchSheet();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Match Maps</title>
+
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        font-family: "Eaglore", sans-serif;
+        color: white;
+      }
+
+      /* Container with 8 cards in a single row */
+      .container {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 25px;
+        padding: 20px;
+      }
+
+      .map-block {
+        position: relative;
+        width: 100%;
+        height: 800px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 10px;
+        opacity: 0;
+        transform: translateY(40px);
+        animation: fadeUp 0.6s forwards;
+        overflow: hidden;
+      }
+
+      /* Dark overlay for maps with logos */
+      .map-block.has-logo::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+        z-index: 0;
+      }
+
+      .map-title,
+      .match-number,
+      .winner-logo {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: textFadeUp 0.5s forwards;
+      }
+
+      .map-title {
+        position: absolute;
+        top: 12px;
+        width: 100%;
+        text-align: center;
+        font-size: 50px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        text-shadow: 0px 0px 10px #000;
+        z-index: 2;
+      }
+
+      .match-number {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        font-size: 50px;
+        text-shadow: 0 0 10px #000;
+        z-index: 2;
+      }
+
+      .winner-logo {
+        position: absolute;
+        top: 40%;
+        left: 17%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 200px;
+        border-radius: 50%; /* Makes it round */
+        object-fit: cover;
+      }
+
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes textFadeUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Optional: make row scrollable if screen is small */
+      @media (max-width: 2000px) {
+        .container {
+          display: flex;
+          overflow-x: auto;
+        }
+        .map-block {
+          flex: 0 0 300px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container" id="cards"></div>
+
+    <script>
+      const SHEET_URL =
+        "https://docs.google.com/spreadsheets/d/1wcaa1nh4MIOXdlE3CBZiBouFy-vLarzXemKQQP3w8Ew/gviz/tq?gid=0&tqx=out:json";
+
+      async function fetchSheet() {
+        const response = await fetch(SHEET_URL);
+        let text = await response.text();
+        text = text.substring(47, text.length - 2);
+        const json = JSON.parse(text);
+        return json.table.rows;
+      }
+
+      function renderCards(rows) {
+        const container = document.getElementById("cards");
+        container.innerHTML = "";
+
+        rows.forEach((row, index) => {
+          const match = row.c[0]?.v;
+          const map = row.c[1]?.v;
+          const logo = row.c[2]?.v; // logo name from sheet
+
+          if (!map) return;
+
+          const block = document.createElement("div");
+          block.className = "map-block";
+          block.style.animationDelay = `${index * 0.12}s`;
+          block.style.backgroundImage = `url('../maps/${map}.png')`;
+
+          // Logo name same as sheet, fallback to 1.jpeg if missing
+          const logoSrc = logo ? `../logos/${logo}.jpg` : "";
+
+          // Add dark overlay if logo exists
+          if (logoSrc) {
+            block.classList.add("has-logo");
+          }
+
+          // Add the map title and match number
+          block.innerHTML = `
+            <div class="map-title" style="animation-delay: ${
+              index * 0.12 + 0.1
+            }s">${map}</div>
+            <div class="match-number" style="animation-delay: ${
+              index * 0.12 + 0.2
+            }s">MATCH ${match}</div>
+          `;
+
+          // Add the winner logo if exists
+          if (logoSrc) {
+            const img = document.createElement("img");
+            img.className = "winner-logo";
+            img.src = logoSrc;
+            img.style.animationDelay = `${index * 0.12 + 0.15}s`;
+            img.style.border = "";
+
+            img.onload = () => {
+              img.style.border = "4px solid rgba(255, 212, 87, 0.6)";
+            };
+            img.onerror = () => {
+              img.src = "../logos/1.jpeg";
+              img.style.border = "none";
+            };
+
+            block.appendChild(img);
+          }
+
+          container.appendChild(block);
+        });
+      }
+
+      (async () => {
+        const rows = await fetchSheet();
+        renderCards(rows);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Character Cards</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "EAGLORE", sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #111;
+      }
+
+      .cards-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        justify-content: center;
+        max-width: 2200px;
+      }
+
+      .card {
+        width: 500px;
+        height: 60vh;
+        border-radius: 22px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #353839;
+        border: 1px solid yellow;
+
+        opacity: 0;
+        transform: translateY(30px);
+        animation: cardFadeSlideUp 0.8s forwards;
+      }
+
+      .card:nth-child(1) {
+        animation-delay: 0.2s;
+      }
+      .card:nth-child(2) {
+        animation-delay: 0.4s;
+      }
+      .card:nth-child(3) {
+        animation-delay: 0.6s;
+      }
+      .card:nth-child(4) {
+        animation-delay: 0.8s;
+      }
+
+      @keyframes cardFadeSlideUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      }
+
+      .back-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 3;
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+        animation: backFadeIn 0.8s forwards;
+      }
+
+      .card:nth-child(1) .back-img {
+        animation-delay: 0.3s;
+      }
+      .card:nth-child(2) .back-img {
+        animation-delay: 0.5s;
+      }
+      .card:nth-child(3) .back-img {
+        animation-delay: 0.7s;
+      }
+      .card:nth-child(4) .back-img {
+        animation-delay: 0.9s;
+      }
+
+      @keyframes backFadeIn {
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .char-img {
+        position: relative;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(30px) scale(0.95);
+        width: 110%;
+        z-index: 2;
+        opacity: 0;
+        animation: charFadeIn 0.8s forwards;
+      }
+
+      .card:nth-child(1) .char-img {
+        animation-delay: 0.6s;
+      }
+      .card:nth-child(2) .char-img {
+        animation-delay: 0.8s;
+      }
+      .card:nth-child(3) .char-img {
+        animation-delay: 1s;
+      }
+      .card:nth-child(4) .char-img {
+        animation-delay: 1.2s;
+      }
+
+      @keyframes charFadeIn {
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+        }
+      }
+
+      .card:hover .back-img {
+        transform: scale(1.1) translateY(-10px) rotate(-1deg);
+        transition: transform 0.7s ease;
+      }
+
+      .card:hover .char-img {
+        transform: translateX(-50%) translateY(-20px) scale(1.05) rotate(1deg);
+        transition: transform 0.7s ease;
+      }
+
+      .label {
+        position: absolute;
+        bottom: 30px;
+        left: 30px;
+        z-index: 3;
+        color: #0e1111;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+        transition: bottom 0.3s ease, opacity 0.5s ease;
+        opacity: 0;
+        animation: labelFadeIn 0.8s forwards;
+      }
+
+      .card:nth-child(1) .label {
+        animation-delay: 0.7s;
+      }
+      .card:nth-child(2) .label {
+        animation-delay: 0.9s;
+      }
+      .card:nth-child(3) .label {
+        animation-delay: 1.1s;
+      }
+      .card:nth-child(4) .label {
+        animation-delay: 1.3s;
+      }
+
+      @keyframes labelFadeIn {
+        to {
+          opacity: 1;
+        }
+      }
+
+      .card:hover .label {
+        bottom: 40px;
+      }
+
+      .label h2 {
+        margin: 0;
+        font-size: 60px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .label p {
+        margin: 4px 0 10px 0;
+        font-size: 22px;
+        letter-spacing: 1px;
+      }
+
+      /* Team name container */
+      .team-name {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: #0e1111;
+        font-size: 40px;
+        font-weight: 700;
+        margin-top: 40px;
+        font-family: "EAGLORE", sans-serif;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: teamFadeIn 0.8s forwards;
+        animation-delay: 1.5s;
+        background-color: white;
+        padding: 20px 40px;
+        border: 3px solid yellow;
+        border-radius: 25px;
+      }
+
+      .winner-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%; /* Makes logo round */
+        object-fit: cover;
+        border: 1px solid yellow;
+      }
+
+      @keyframes teamFadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cards-wrapper">
+      <!-- CARD 1 -->
+      <div class="card">
+        <img class="back-img" src="../booyahTeam/backgroundBelow.png" />
+        <img class="char-img" src="../booyahTeam/nero.png" alt="NERO" />
+        <div class="label">
+          <h2 class="name-1"></h2>
+          <p>HOMIES REALM RUMBLE BATTLE ROYAL</p>
+        </div>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="card">
+        <img class="back-img" src="../booyahTeam/background.png" />
+        <img class="char-img" src="../booyahTeam/rin.png" alt="RIN" />
+        <div class="label">
+          <h2 class="name-2"></h2>
+          <p>HOMIES REALM RUMBLE BATTLE ROYAL</p>
+        </div>
+      </div>
+
+      <!-- CARD 3 -->
+      <div class="card">
+        <img class="back-img" src="../booyahTeam/background.png" />
+        <img class="char-img" src="../booyahTeam/oscar.png" alt="OSCAR" />
+        <div class="label">
+          <h2 class="name-3"></h2>
+          <p>HOMIES REALM RUMBLE BATTLE ROYAL</p>
+        </div>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="card">
+        <img class="back-img" src="../booyahTeam/background.png" />
+        <img class="char-img" src="../booyahTeam/kassie.png" alt="KASSIE" />
+        <div class="label">
+          <h2 class="name-4"></h2>
+          <p>HOMIES REALM RUMBLE BATTLE ROYAL</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Winner team name and logo -->
+    <div class="team-name">
+      <img class="winner-logo" src="" alt="Team Logo" />
+      <span class="winner-name"></span>
+    </div>
+
+    <script>
+      async function loadNames() {
+        const SHEET_URL =
+          "https://docs.google.com/spreadsheets/d/1S1PkVH9RY2UBnEgBaxOvd-D4vI5S1anYR0IgGlwGCKc/gviz/tq?gid=1669096445&tqx=out:json";
+
+        const res = await fetch(SHEET_URL);
+        let text = await res.text();
+        text = text.substring(47, text.length - 2);
+        const json = JSON.parse(text);
+        const rows = json.table.rows;
+
+        const booyahTeamname = rows[3]?.c[0]?.v;
+        const teamRow = rows[3];
+
+        let matchedColumn = -1;
+
+        for (let col = 8; col <= 19; col++) {
+          const cellValue = teamRow.c[col]?.v?.trim();
+          if (
+            cellValue &&
+            cellValue.toUpperCase() === booyahTeamname.toUpperCase()
+          ) {
+            matchedColumn = col;
+            break;
+          }
+        }
+
+        const name1 = rows[4]?.c[matchedColumn]?.v || "";
+        const name2 = rows[5]?.c[matchedColumn]?.v || "";
+        const name3 = rows[6]?.c[matchedColumn]?.v || "";
+        const name4 = rows[7]?.c[matchedColumn]?.v || "";
+        const logo = rows[8]?.c[matchedColumn]?.v || "";
+
+        document.querySelector(".name-1").textContent = name1;
+        document.querySelector(".name-2").textContent = name2;
+        document.querySelector(".name-3").textContent = name3;
+        document.querySelector(".name-4").textContent = name4;
+
+        // Display winner team name
+        document.querySelector(".winner-name").textContent = booyahTeamname;
+
+        // Display winner logo
+        if (logo) {
+          document.querySelector(".winner-logo").src = `../logos/${logo}`;
+          document.querySelector(".winner-logo").alt = booyahTeamname + " Logo";
+        }
+      }
+
+      loadNames();
+    </script>
+  </body>
+</html>
